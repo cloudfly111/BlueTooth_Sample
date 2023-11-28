@@ -30,6 +30,9 @@ import android.view.ViewGroup;
 
 import com.judy.self.bluetooth_sample.databinding.FragmentMainBinding;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class MainFragment extends Fragment {
     private String TAG = "MainFragment";
@@ -68,7 +71,10 @@ public class MainFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
-        if (bIsEnable) binding.textView.setText("Is Enabled");
+        if (bIsEnable){
+            binding.textView.setText("Is Enabled");
+            binding.Scanbutton.setVisibility(View.INVISIBLE);
+        }
 //      Android 官方手冊：  https://developer.android.com/develop/connectivity/bluetooth/setup?hl=zh-tw#java
         //1. 取得 BluetoothAdapter
         BluetoothManager bluetoothManager = getSystemService(getContext(), BluetoothManager.class);
@@ -122,19 +128,37 @@ public class MainFragment extends Fragment {
                     binding.textView.setText("get the permission for scanning Bluetooth devices.");
                     BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
                     scanLeDevice(bluetoothLeScanner);
+                    binding.Scanbutton.setVisibility(View.VISIBLE);
+                    binding.Scanbutton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            scanLeDevice(bluetoothLeScanner);
+                        }
+                    });
                 }
             }
         });
         blueScanPermissionLaucher.launch(Manifest.permission.BLUETOOTH_SCAN);
 
-
+        checkPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_ADMIN,Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH});
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            ActivityResultLauncher blueAdminPermissionLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+                @Override
+                public void onActivityResult(Boolean o) {
+                    if (o) {
+                        binding.textView.setText("get the BLUETOOTH_ADMIN permission ");
+                    }
+                }
+            });
+            blueAdminPermissionLaucher.launch(Manifest.permission.BLUETOOTH_ADMIN);
+        }
     }
 
     boolean scanning;
     Handler handler = new Handler();
 
     // Stops scanning after 10 seconds.
-    final long SCAN_PERIOD = 10000;
+    final long SCAN_PERIOD = 20000;
 
     // Device scan callback.
     ScanCallback leScanCallback =
@@ -142,6 +166,9 @@ public class MainFragment extends Fragment {
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
+
+                    binding.textView.setText("get the device: "+result.getDevice());
+                    Log.i(TAG, "onScanResult: "+result.getDevice());
 //                    leDeviceListAdapter.addDevice(result.getDevice());
 //                    leDeviceListAdapter.notifyDataSetChanged();
                 }
@@ -156,13 +183,15 @@ public class MainFragment extends Fragment {
                     scanning = false;
 
                     if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
+                        ActivityResultLauncher blueScanPermissionLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+                            @Override
+                            public void onActivityResult(Boolean o) {
+                                if (o) {
+                                    binding.textView.setText("get the permission for scanning Bluetooth devices.");
+                                }
+                            }
+                        });
+                        blueScanPermissionLaucher.launch(Manifest.permission.BLUETOOTH_SCAN);
                         return;
                     }
                     bluetoothLeScanner.stopScan(leScanCallback);
@@ -180,5 +209,16 @@ public class MainFragment extends Fragment {
             Log.i(TAG, "run: stopScan");
 
         }
-    };
+    }
+
+    private HashMap<String,Boolean> checkPermissions(String[] permissions){
+        HashMap<String,Boolean> checkMap =new HashMap<String,Boolean>();
+
+        for(String p : permissions){
+            checkMap.put(p,ActivityCompat.checkSelfPermission(getContext(), p)== PackageManager.PERMISSION_GRANTED);
+            Log.i(TAG, "checkPermissions: "+checkMap.get(p));
+        }
+        Log.i(TAG, "checkPermissions: "+checkMap);
+        return checkMap;
+    }
 }
