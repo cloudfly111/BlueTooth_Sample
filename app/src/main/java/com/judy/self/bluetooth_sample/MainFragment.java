@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.getSystemService;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -30,8 +31,11 @@ import android.view.ViewGroup;
 
 import com.judy.self.bluetooth_sample.databinding.FragmentMainBinding;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class MainFragment extends Fragment {
@@ -139,13 +143,13 @@ public class MainFragment extends Fragment {
 
                     //開始掃描周遭裝置
                     BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
-                    scanLeDevice(bluetoothLeScanner);
-
                     binding.Scanbutton.setVisibility(View.VISIBLE);
                     binding.Scanbutton.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+
                             scanLeDevice(bluetoothLeScanner);
+                            pairBLEDevice(bluetoothAdapter);
                         }
                     });
                 }
@@ -195,7 +199,7 @@ public class MainFragment extends Fragment {
                     }
                     binding.textView.setText("get the device: " + result.getDevice() + "[" + result.getDevice() + "]");
 
-                    Log.i(TAG, "onScanResult: "+result.getDevice());
+                    Log.i(TAG, "onScanResult: " + result.getDevice());
 //                    leDeviceListAdapter.addDevice(result.getDevice());
 //                    leDeviceListAdapter.notifyDataSetChanged();
                 }
@@ -240,14 +244,33 @@ public class MainFragment extends Fragment {
     }
 
     //確認是否取得權限
-    private HashMap<String,Boolean> checkPermissions(String[] permissions){
-        HashMap<String,Boolean> checkMap =new HashMap<String,Boolean>();
+    private HashMap<String, Boolean> checkPermissions(String[] permissions) {
+        HashMap<String, Boolean> checkMap = new HashMap<String, Boolean>();
 
-        for(String p : permissions){
-            checkMap.put(p,ActivityCompat.checkSelfPermission(getContext(), p)== PackageManager.PERMISSION_GRANTED);
-            Log.i(TAG, "checkPermissions: "+checkMap.get(p));
+        for (String p : permissions) {
+            checkMap.put(p, ActivityCompat.checkSelfPermission(getContext(), p) == PackageManager.PERMISSION_GRANTED);
+            Log.i(TAG, "checkPermissions: " + checkMap.get(p));
         }
-        Log.i(TAG, "checkPermissions: "+checkMap);
+        Log.i(TAG, "checkPermissions: " + checkMap);
         return checkMap;
+    }
+    //加入藍芽配對功能，顯示已配對的裝置名稱清單(pairedList)
+    private void pairBLEDevice(BluetoothAdapter bluetoothAdapter) {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Set<BluetoothDevice> pairedDeviceSet = bluetoothAdapter.getBondedDevices();
+        List<String> pairedList = new ArrayList<String>();
+        for(BluetoothDevice d : pairedDeviceSet){
+            pairedList.add(d.getName());
+        }
+        Log.i(TAG, "pairBLEDevice: "+pairedList);
     }
 }
