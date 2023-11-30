@@ -121,15 +121,26 @@ public class MainFragment extends Fragment {
 
         //3. 掃描藍芽
         // source：https://developer.android.com/develop/connectivity/bluetooth/ble/find-ble-devices?hl=zh-tw
+        //取得掃描權限後, 開始掃描周遭裝置
+//      //注意：Android 11 以下 必須要取得 ACCESS_FINE_LOCATION 才能 掃描周遭裝置
+        ActivityResultLauncher deviceLocationLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+            @Override
+            public void onActivityResult(Boolean o) {
+                binding.textView.setText("get the permission for device location");
+            }
+        });
+
         ActivityResultLauncher blueScanPermissionLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
             @Override
             public void onActivityResult(Boolean o) {
                 if (o) {
                     binding.textView.setText("get the permission for scanning Bluetooth devices.");
+                    deviceLocationLaucher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
 
-
+                    //開始掃描周遭裝置
                     BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
                     scanLeDevice(bluetoothLeScanner);
+
                     binding.Scanbutton.setVisibility(View.VISIBLE);
                     binding.Scanbutton.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -142,14 +153,6 @@ public class MainFragment extends Fragment {
         });
         blueScanPermissionLaucher.launch(Manifest.permission.BLUETOOTH_SCAN);
 
-        ActivityResultLauncher fineLocationLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
-            @Override
-            public void onActivityResult(Boolean o) {
-                binding.textView.setText("get the permission for device location");
-            }
-        });
-        fineLocationLaucher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
-        checkPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION});
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
             ActivityResultLauncher blueAdminPermissionLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
                 @Override
@@ -161,6 +164,10 @@ public class MainFragment extends Fragment {
             });
             blueAdminPermissionLaucher.launch(Manifest.permission.BLUETOOTH_ADMIN);
         }
+
+
+        checkPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION});
+
     }
 
     boolean scanning;
@@ -194,6 +201,7 @@ public class MainFragment extends Fragment {
                 }
             };
 
+    //掃描周遭的藍芽裝置
     private void scanLeDevice(BluetoothLeScanner bluetoothLeScanner) {
         if (!scanning) {
             // Stops scanning after a predefined scan period.
@@ -231,6 +239,7 @@ public class MainFragment extends Fragment {
         }
     }
 
+    //確認是否取得權限
     private HashMap<String,Boolean> checkPermissions(String[] permissions){
         HashMap<String,Boolean> checkMap =new HashMap<String,Boolean>();
 
