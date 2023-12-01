@@ -1,15 +1,38 @@
 package com.judy.self.bluetooth_sample;
 
-import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 
 import com.judy.self.bluetooth_sample.databinding.ActivityMainBinding;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-
+    private String TAG = "MainActivity";
+    private  ActivityResultLauncher<Intent> blueEnableLaucher;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,9 +41,109 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null) {
             Bundle bundle = new Bundle();
-            bundle.putBoolean("bIsEnable",true);
+            bundle.putBoolean("bIsEnable", true);
             getSupportFragmentManager().beginTransaction().setReorderingAllowed(true).add(R.id.fragment_Container, MainFragment.class, bundle).commit();
         }
 
+        blueEnableLaucher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
+                    BluetoothManager bluetoothManager = getSystemService(BluetoothManager.class);
+                    BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+                    if (bluetoothAdapter.isEnabled()) {
+                        BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
+                        scanLeDevice(bluetoothLeScanner);
+                        pairBLEDevice(bluetoothAdapter);
+                    }
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            blueEnableLaucher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+        }
+        Log.i(TAG, "onRequestPermissionsResult: " + requestCode);
+
+    }
+
+    boolean scanning;
+    Handler handler = new Handler();
+
+    // Stops scanning after 10 seconds.
+    final long SCAN_PERIOD = 20000;
+
+    // Device scan callback.
+    ScanCallback leScanCallback =
+            new ScanCallback() {
+                @Override
+                public void onScanResult(int callbackType, ScanResult result) {
+                    super.onScanResult(callbackType, result);
+
+                    if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                    }
+                    Log.i(TAG, "onScanResult: " + result.getDevice());
+                }
+            };
+
+    //掃描周遭的藍芽裝置
+    private void scanLeDevice(BluetoothLeScanner bluetoothLeScanner) {
+        if (!scanning) {
+            // Stops scanning after a predefined scan period.
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    scanning = false;
+
+                    if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityResultLauncher blueScanPermissionLaucher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+                            @Override
+                            public void onActivityResult(Boolean o) {
+                            }
+                        });
+                        blueScanPermissionLaucher.launch(Manifest.permission.BLUETOOTH_SCAN);
+                        return;
+                    }
+                    bluetoothLeScanner.stopScan(leScanCallback);
+                    Log.i(TAG, "run: stopScan 1");
+                }
+            }, SCAN_PERIOD);
+
+            scanning = true;
+            bluetoothLeScanner.startScan(leScanCallback);
+            Log.i(TAG, "run: startScan 2");
+
+        } else {
+            scanning = false;
+            bluetoothLeScanner.stopScan(leScanCallback);
+            Log.i(TAG, "run: stopScan");
+
+        }
+    }
+
+    //加入藍芽配對功能，顯示已配對的裝置名稱清單(pairedList)
+    private void pairBLEDevice(BluetoothAdapter bluetoothAdapter) {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Set<BluetoothDevice> pairedDeviceSet = bluetoothAdapter.getBondedDevices();
+        List<String> pairedList = new ArrayList<String>();
+        for (BluetoothDevice d : pairedDeviceSet) {
+            pairedList.add(d.getName());
+        }
+        Log.i(TAG, "pairBLEDevice: " + pairedList);
     }
 }
