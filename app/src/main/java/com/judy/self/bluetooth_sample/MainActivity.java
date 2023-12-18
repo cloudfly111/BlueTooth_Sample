@@ -1,16 +1,13 @@
 package com.judy.self.bluetooth_sample;
 
-
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -26,18 +23,15 @@ import android.util.Log;
 import com.judy.self.bluetooth_sample.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private ActivityMainBinding binding;
-    public String TAG = "MainActivity";
+    private ActivityResultLauncher blueEnableLaucher;
 
-    private  ActivityResultLauncher<Intent> blueEnableLaucher;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         blueEnableLaucher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult o) {
-                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED) {
 
                     if (bluetoothAdapter.isEnabled()) {
                         BluetoothLeScanner bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
@@ -82,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
          * 詢問是否允許開啟藍芽
          * (必須先通過 permission.BLUETOOTH_CONNECT 請求)
          * */
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
             blueEnableLaucher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
         }
         Log.i(TAG, "onRequestPermissionsResult: " + requestCode);
@@ -129,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onActivityResult(Boolean o) {
                             }
                         });
-                        blueScanPermissionLaucher.launch(Manifest.permission.BLUETOOTH_SCAN);
+                        blueScanPermissionLaucher.launch(android.Manifest.permission.BLUETOOTH_SCAN);
                         return;
                     }
                     bluetoothLeScanner.stopScan(leScanCallback);
@@ -154,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
     //加入藍芽配對功能，顯示已配對的裝置名稱清單(pairedList)
     private void pairBLEDevice(BluetoothAdapter bluetoothAdapter) {
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
