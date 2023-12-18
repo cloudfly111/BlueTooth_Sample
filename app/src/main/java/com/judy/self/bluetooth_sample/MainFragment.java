@@ -109,6 +109,7 @@ public class MainFragment extends Fragment {
         public void finishScan() {
             setStatus("finish scan");
             clearRefreshingIcon();
+            setDeviceNameList(((MainActivity)getActivity()).deviceMACAddress);
         }
     };
 
@@ -138,6 +139,10 @@ public class MainFragment extends Fragment {
     }
 
     private void showDialog(ArrayList<String> dataList){
+
+    }
+    private void setDeviceNameList(ArrayList<String> list){
+        binding.DeviceListView.setAdapter(new DeviceListAdapter(getContext(),list));
 
     }
 }
