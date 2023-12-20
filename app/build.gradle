@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId "com.judy.self.bluetooth_sample"
-        minSdk 28
+        minSdk 26
         targetSdk 34
         versionCode 1
         versionName "1.0"
