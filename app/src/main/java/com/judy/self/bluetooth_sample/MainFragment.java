@@ -1,26 +1,33 @@
 package com.judy.self.bluetooth_sample;
 
+import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static androidx.core.content.ContextCompat.getSystemService;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.RotateAnimation;
+import android.widget.Toast;
 
 import com.judy.self.bluetooth_sample.databinding.FragmentMainBinding;
 
+import java.security.Permission;
 import java.util.ArrayList;
 
 
@@ -64,6 +71,8 @@ public class MainFragment extends Fragment {
         if (bIsEnable) {
             binding.textView.setText("Is Enabled");
             binding.Scanbutton.setVisibility(View.INVISIBLE);
+            boolean bluetoothLEAvailable = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+            Log.i(TAG, "onViewCreated: bluetoothLEAvailable = "+bluetoothLEAvailable);
         }
 //      Android 官方手冊：  https://developer.android.com/develop/connectivity/bluetooth/setup?hl=zh-tw#java
         //1. 取得 BluetoothAdapter
@@ -88,7 +97,13 @@ public class MainFragment extends Fragment {
              *
              */
 
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN,}, 300);
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
+
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN}, 300);
+
+            } else {
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN,}, 300);
+            }
         }
 
     }
