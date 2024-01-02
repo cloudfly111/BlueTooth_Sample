@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.R){
             if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && !BluetoothAdapter.getDefaultAdapter().isEnabled()) {
                 blueEnableLaucher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
-            }else{
+            }else if(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_ADMIN)!=PackageManager.PERMISSION_GRANTED){
                 Log.i(TAG, "onRequestPermissionsResult: enable bluetooth and ACCESS_COARSE_LOCATION ");
             }
         }else{
@@ -113,12 +113,18 @@ public class MainActivity extends AppCompatActivity {
     Handler handler = new Handler();
 
     // Stops scanning after 10 seconds.
-    final long SCAN_PERIOD = 20000;
+    final long SCAN_PERIOD = 10000;
 
     public ArrayList<String> deviceMACAddress = new ArrayList<String>();
     // Device scan callback.
     ScanCallback leScanCallback =
             new ScanCallback() {
+                @Override
+                public void onBatchScanResults(List<ScanResult> results) {
+                    super.onBatchScanResults(results);
+                    Log.i(TAG, "onBatchScanResults: " + results.size());
+                }
+
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
@@ -158,6 +164,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                     bluetoothLeScanner.stopScan(leScanCallback);
+                    Log.i(TAG, "run: ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED = "+(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED));
+                    Log.i(TAG, "run: ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED = "+(ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED));
                     Log.i(TAG, "run: stopScan 1");
                     MainFragment mainFragment= (MainFragment) getSupportFragmentManager().getFragments().get(0);
                     mainFragment.scanStatus.finishScan();

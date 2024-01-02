@@ -17,15 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/Scanbutton"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="Scan Device"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
 
     <ImageView
         android:id="@+id/refreshingImageview"
@@ -38,10 +29,12 @@
     <ListView
         android:id="@+id/DeviceListView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/Scanbutton" />
+        app:layout_constraintTop_toBottomOf="@id/textView"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -70,7 +70,6 @@ public class MainFragment extends Fragment {
 
         if (bIsEnable) {
             binding.textView.setText("Is Enabled");
-            binding.Scanbutton.setVisibility(View.INVISIBLE);
             boolean bluetoothLEAvailable = getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
             Log.i(TAG, "onViewCreated: bluetoothLEAvailable = "+bluetoothLEAvailable);
         }
@@ -99,7 +98,7 @@ public class MainFragment extends Fragment {
 
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
 
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN}, 300);
+                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_ADMIN,Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.BLUETOOTH,}, 300);
 
             } else {
                 ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN,}, 300);
